@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Hive Visual Censor - Settings</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 24px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    .content {
+      padding: 24px;
+    }
+    .section {
+      margin-bottom: 32px;
+    }
+    .section h2 {
+      margin: 0 0 16px 0;
+      font-size: 18px;
+      color: #333;
+    }
+    .auth-section {
+      text-align: center;
+      padding: 32px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    .btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #5a6fd8;
+    }
+    .btn-outline {
+      background: transparent;
+      color: #667eea;
+      border: 1px solid #667eea;
+    }
+    .btn-outline:hover {
+      background: #667eea;
+      color: white;
+    }
+    .message {
+      padding: 12px;
+      border-radius: 6px;
+      margin: 16px 0;
+    }
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🛡️ Hive Visual Censor Settings</h1>
+    </div>
+    
+    <div class="content">
+      <div class="section">
+        <div class="auth-section" id="authSection">
+          <h2>Authentication Required</h2>
+          <p>Sign in to configure your content filtering policies and sync settings across devices.</p>
+          <button class="btn" onclick="openDashboard()">Open Dashboard to Sign In</button>
+        </div>
+      </div>
+      
+      <div class="section">
+        <h2>Quick Actions</h2>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <button class="btn btn-outline" onclick="openDashboard()">Open Dashboard</button>
+          <button class="btn btn-outline" onclick="clearCache()">Clear Cache</button>
+          <button class="btn btn-outline" onclick="exportSettings()">Export Settings</button>
+        </div>
+      </div>
+      
+      <div class="section">
+        <h2>About</h2>
+        <p>Hive Visual Censor uses AI-powered content moderation to filter inappropriate content in real-time as you browse. Configure your filtering preferences in the dashboard.</p>
+        <p><strong>Version:</strong> 1.0.0</p>
+        <p><strong>Privacy:</strong> All content analysis is performed securely and no personal data is stored.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openDashboard() {
+      chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
+    }
+    
+    function clearCache() {
+      chrome.storage.local.clear(() => {
+        alert('Cache cleared successfully');
+      });
+    }
+    
+    function exportSettings() {
+      chrome.storage.local.get(null, (items) => {
+        const dataStr = JSON.stringify(items, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'hive-settings.json';
+        link.click();
+      });
+    }
+  </script>
+</body>
+</html>

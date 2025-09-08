@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 300px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .logo {
+      font-size: 24px;
+      margin-right: 8px;
+    }
+    .title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+    .auth-container {
+      display: none;
+    }
+    .auth-container.active {
+      display: block;
+    }
+    .form-group {
+      margin-bottom: 12px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+      color: #333;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    .toggle-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: #ccc;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .toggle.active {
+      background: #4CAF50;
+    }
+    .toggle-slider {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+    .toggle.active .toggle-slider {
+      transform: translateX(20px);
+    }
+    .stats {
+      background: white;
+      border: 1px solid #e1e5e9;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .stat-item:last-child {
+      margin-bottom: 0;
+    }
+    .stat-label {
+      color: #666;
+      font-size: 14px;
+    }
+    .stat-value {
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #e1e5e9;
+      background: white;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      background: #f8f9fa;
+    }
+    .btn-primary {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+    .btn-primary:hover {
+      background: #5a6fd8;
+    }
+    .user-info {
+      background: #f0f9ff;
+      padding: 8px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: #0369a1;
+    }
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #e1e5e9;
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 8px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 14px;
+      color: #666;
+      border-bottom: 2px solid transparent;
+    }
+    .auth-tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">🛡️</div>
+    <div class="title">Hive Visual Censor</div>
+  </div>
+
+  <!-- Authentication Section -->
+  <div id="authContainer" class="auth-container">
+    <div class="auth-tabs">
+      <div class="auth-tab active" data-tab="login">Login</div>
+      <div class="auth-tab" data-tab="signup">Sign Up</div>
+    </div>
+    
+    <div id="loginForm" class="auth-form">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="Enter your email">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="Enter your password">
+      </div>
+      <button class="btn btn-primary" id="loginBtn">Login</button>
+    </div>
+    
+    <div id="signupForm" class="auth-form" style="display: none;">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="signupEmail" placeholder="Enter your email">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="signupPassword" placeholder="Create a password">
+      </div>
+      <button class="btn btn-primary" id="signupBtn">Sign Up</button>
+    </div>
+  </div>
+
+  <!-- Main Interface (shown when authenticated) -->
+  <div id="mainContainer" style="display: none;">
+    <div class="user-info" id="userInfo"></div>
+    
+    <div class="toggle-section">
+      <span>Protection Enabled</span>
+      <div class="toggle active" id="enableToggle">
+        <div class="toggle-slider"></div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-item">
+        <span class="stat-label">Items Scanned</span>
+        <span class="stat-value" id="scannedCount">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Items Blocked</span>
+        <span class="stat-value" id="blockedCount">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Items Blurred</span>
+        <span class="stat-value" id="blurredCount">0</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="logoutBtn">Logout</button>
+      <button class="btn btn-primary" id="dashboardBtn">Dashboard</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

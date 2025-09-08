@@ -13,7 +13,7 @@
   "redirects": [
     {
       "source": "/(.*)",
-      "destination": "https://access-sentinel.com/$1",
+      "destination": "https://www.access-sentinel.com/$1",
       "permanent": true,
       "has": [
         {

@@ -1,12 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "Hive Visual Censor",
+  "name": "Access Sentinel - Visual Content Filter",
   "version": "1.0.0",
-  "description": "Real-time content filtering using AI-powered visual moderation",
+  "description": "AI-powered visual content filtering extension that protects users from inappropriate images in real-time",
   "permissions": [
     "storage",
     "activeTab",
-    "scripting"
+    "scripting",
+    "tabs",
+    "contextMenus"
   ],
   "host_permissions": [
     "https://*/*",
@@ -25,17 +27,22 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Hive Visual Censor"
+    "default_title": "Access Sentinel - Toggle Content Filter",
+    "default_icon": {
+      "16": "placeholder.svg",
+      "48": "placeholder.svg",
+      "128": "placeholder.svg"
+    }
   },
   "options_page": "options.html",
   "icons": {
-    "16": "icon16.png",
-    "48": "icon48.png",
-    "128": "icon128.png"
+    "16": "placeholder.svg",
+    "48": "placeholder.svg", 
+    "128": "placeholder.svg"
   },
   "web_accessible_resources": [
     {
-      "resources": ["overlay.html"],
+      "resources": ["content.css", "blocked.html"],
       "matches": ["<all_urls>"]
     }
   ]

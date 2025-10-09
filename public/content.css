@@ -1,61 +1,182 @@
-.hive-overlay {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  min-height: 100px;
-  position: relative;
+/* Styles for blocked content overlays */
+.sentinel-content-blocked {
+  position: relative !important;
+  display: inline-block !important;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+  border: 2px dashed #dee2e6 !important;
+  border-radius: 8px !important;
+  text-align: center !important;
+  padding: 20px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  color: #6c757d !important;
+  box-sizing: border-box !important;
+  transition: all 0.3s ease !important;
+  cursor: default !important;
 }
 
-.hive-overlay-content {
-  text-align: center;
-  padding: 16px;
+.sentinel-content-blocked:hover {
+  background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%) !important;
+  border-color: #adb5bd !important;
 }
 
-.hive-icon {
-  font-size: 24px;
-  margin-bottom: 8px;
+.sentinel-content-blocked .sentinel-blocked-icon {
+  font-size: 32px !important;
+  margin-bottom: 12px !important;
+  display: block !important;
+  opacity: 0.8 !important;
 }
 
-.hive-message {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.4;
+.sentinel-content-blocked .sentinel-blocked-title {
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  margin-bottom: 6px !important;
+  color: #495057 !important;
 }
 
-.hive-message small {
-  opacity: 0.8;
-  font-size: 12px;
-  font-weight: 400;
+.sentinel-content-blocked .sentinel-blocked-subtitle {
+  font-size: 12px !important;
+  opacity: 0.7 !important;
+  margin-bottom: 15px !important;
+  line-height: 1.4 !important;
 }
 
-.hive-reveal {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-  margin-top: 8px;
-  transition: all 0.2s ease;
+.sentinel-content-blocked .sentinel-show-button {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 8px 16px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
 }
 
-.hive-reveal:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-1px);
+.sentinel-content-blocked .sentinel-show-button:hover {
+  background: linear-gradient(135deg, #0056b3 0%, #004085 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3) !important;
 }
 
-.hive-blocked {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+.sentinel-content-blocked .sentinel-show-button:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3) !important;
 }
 
-.hive-blurred {
-  background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+/* Small overlay for smaller images */
+.sentinel-content-blocked.sentinel-small {
+  padding: 10px !important;
+  min-height: 60px !important;
+  min-width: 80px !important;
+}
+
+.sentinel-content-blocked.sentinel-small .sentinel-blocked-icon {
+  font-size: 20px !important;
+  margin-bottom: 5px !important;
+}
+
+.sentinel-content-blocked.sentinel-small .sentinel-blocked-title {
+  font-size: 11px !important;
+  margin-bottom: 3px !important;
+}
+
+.sentinel-content-blocked.sentinel-small .sentinel-blocked-subtitle {
+  font-size: 9px !important;
+  margin-bottom: 8px !important;
+}
+
+.sentinel-content-blocked.sentinel-small .sentinel-show-button {
+  padding: 4px 8px !important;
+  font-size: 9px !important;
+}
+
+/* Animation for when content is blocked */
+@keyframes sentinelBlockFade {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.sentinel-content-blocked {
+  animation: sentinelBlockFade 0.3s ease-out !important;
+}
+
+/* Ensure blocked content doesn't break layouts */
+.sentinel-content-blocked {
+  max-width: 100% !important;
+  height: auto !important;
+  vertical-align: top !important;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .sentinel-content-blocked {
+    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%) !important;
+    border-color: #4a5568 !important;
+    color: #a0aec0 !important;
+  }
+
+  .sentinel-content-blocked:hover {
+    background: linear-gradient(135deg, #1a202c 0%, #171923 100%) !important;
+    border-color: #718096 !important;
+  }
+
+  .sentinel-content-blocked .sentinel-blocked-title {
+    color: #e2e8f0 !important;
+  }
+}
+
+/* Blur overlay styles */
+.sentinel-blur-wrapper {
+  position: relative !important;
+  display: inline-block !important;
+  overflow: hidden !important;
+}
+
+.sentinel-blurred-content {
+  filter: blur(20px) !important;
+  transition: filter 0.3s ease !important;
+}
+
+.sentinel-blur-overlay {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  z-index: 999 !important;
+}
+
+.sentinel-reveal-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 10px 20px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+.sentinel-reveal-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5) !important;
+}
+
+.sentinel-reveal-button:active {
+  transform: translateY(0) !important;
 }

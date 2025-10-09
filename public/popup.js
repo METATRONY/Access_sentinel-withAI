@@ -1,203 +1,229 @@
-// Supabase configuration
-const SUPABASE_URL = 'https://qzrcbuzvgcyahevtsfms.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6cmNidXp2Z2N5YWhldnRzZm1zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5NzgzNjAsImV4cCI6MjA3MjU1NDM2MH0.eeHYAJGJeYYqFZgFJGJhKgGgGgGgGgGgGgGgGgGgGgG';
+// Popup functionality for Access Sentinel extension
+let isScanning = false;
+let currentUser = null;
 
-class SupabaseClient {
-  constructor(url, key) {
-    this.url = url;
-    this.key = key;
-  }
+document.addEventListener('DOMContentLoaded', function() {
+  const authContainer = document.getElementById('authContainer');
+  const mainContainer = document.getElementById('mainContainer');
+  const userInfo = document.getElementById('userInfo');
+  const loginBtn = document.getElementById('loginBtn');
+  const signupBtn = document.getElementById('signupBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const scanBtn = document.getElementById('scanBtn');
+  const dashboardBtn = document.getElementById('dashboardBtn');
+  const enableToggle = document.getElementById('enableToggle');
+  const status = document.getElementById('status');
+  const scanResults = document.getElementById('scanResults');
 
-  async signUp(email, password) {
-    const response = await fetch(`${this.url}/auth/v1/signup`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': this.key
-      },
-      body: JSON.stringify({ email, password })
-    });
-    return response.json();
-  }
+  const authTabs = document.querySelectorAll('.auth-tab');
+  const loginForm = document.getElementById('loginForm');
+  const signupForm = document.getElementById('signupForm');
 
-  async signIn(email, password) {
-    const response = await fetch(`${this.url}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': this.key
-      },
-      body: JSON.stringify({ email, password })
-    });
-    return response.json();
-  }
-
-  async getUser(token) {
-    const response = await fetch(`${this.url}/auth/v1/user`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'apikey': this.key
-      }
-    });
-    return response.json();
-  }
-}
-
-const supabase = new SupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-document.addEventListener('DOMContentLoaded', async () => {
-  // Check authentication status
-  const token = await getStoredToken();
-  if (token) {
-    showMainInterface(token);
-  } else {
-    showAuthInterface();
-  }
-
-  // Auth tab switching
-  document.querySelectorAll('.auth-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      const tabType = tab.dataset.tab;
-      switchAuthTab(tabType);
-    });
-  });
-
-  // Login form
-  document.getElementById('loginBtn').addEventListener('click', async () => {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    
-    if (!email || !password) {
-      alert('Please fill in all fields');
-      return;
-    }
-
-    try {
-      const result = await supabase.signIn(email, password);
-      if (result.access_token) {
-        await storeToken(result.access_token, result.user);
-        showMainInterface(result.access_token);
-      } else {
-        alert('Login failed: ' + (result.error?.message || 'Unknown error'));
-      }
-    } catch (error) {
-      alert('Login error: ' + error.message);
-    }
-  });
-
-  // Signup form
-  document.getElementById('signupBtn').addEventListener('click', async () => {
-    const email = document.getElementById('signupEmail').value;
-    const password = document.getElementById('signupPassword').value;
-    
-    if (!email || !password) {
-      alert('Please fill in all fields');
-      return;
-    }
-
-    try {
-      const result = await supabase.signUp(email, password);
-      if (result.user) {
-        alert('Account created! Please check your email to verify your account, then login.');
-        switchAuthTab('login');
-      } else {
-        alert('Signup failed: ' + (result.error?.message || 'Unknown error'));
-      }
-    } catch (error) {
-      alert('Signup error: ' + error.message);
-    }
-  });
-
-  // Logout
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
-    await chrome.storage.local.remove(['userToken', 'userInfo']);
-    showAuthInterface();
-  });
-
-  // Toggle functionality
-  document.getElementById('enableToggle').addEventListener('click', async () => {
-    const toggle = document.getElementById('enableToggle');
-    const isEnabled = !toggle.classList.contains('active');
-    
-    if (isEnabled) {
-      toggle.classList.add('active');
+  chrome.storage.local.get(['userId', 'userEmail'], function(result) {
+    if (result.userId && result.userEmail) {
+      currentUser = { id: result.userId, email: result.userEmail };
+      showMainInterface();
     } else {
-      toggle.classList.remove('active');
+      showAuthInterface();
     }
-    
-    // Store the setting
-    await chrome.storage.local.set({ extensionEnabled: isEnabled });
-    
-    // Notify background script
-    chrome.runtime.sendMessage({ 
-      type: 'TOGGLE_EXTENSION', 
-      enabled: isEnabled 
+  });
+
+  authTabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+      const tabType = this.getAttribute('data-tab');
+      authTabs.forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      if (tabType === 'login') {
+        loginForm.style.display = 'block';
+        signupForm.style.display = 'none';
+      } else {
+        loginForm.style.display = 'none';
+        signupForm.style.display = 'block';
+      }
     });
   });
 
-  // Dashboard button
-  document.getElementById('dashboardBtn').addEventListener('click', () => {
-    chrome.tabs.create({ url: chrome.runtime.getURL('options.html') });
-  });
-
-  // Load stats
-  loadStats();
-});
-
-function switchAuthTab(tabType) {
-  // Update tab appearance
-  document.querySelectorAll('.auth-tab').forEach(tab => {
-    tab.classList.remove('active');
-  });
-  document.querySelector(`[data-tab="${tabType}"]`).classList.add('active');
-
-  // Show/hide forms
-  if (tabType === 'login') {
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('signupForm').style.display = 'none';
-  } else {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('signupForm').style.display = 'block';
+  if (loginBtn) {
+    loginBtn.addEventListener('click', async function() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      if (!email || !password) {
+        alert('Please fill in all fields');
+        return;
+      }
+      loginBtn.textContent = 'Logging in...';
+      loginBtn.disabled = true;
+      try {
+        const response = await fetch('https://qzrcbuzvgcyahevtsfms.supabase.co/functions/v1/auth-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await response.json();
+        if (data.success && data.user) {
+          await chrome.storage.local.set({
+            userId: data.user.id,
+            userEmail: data.user.email,
+            accessToken: data.session?.access_token,
+            user: data.user
+          });
+          currentUser = { id: data.user.id, email: data.user.email };
+          showMainInterface();
+        } else {
+          alert(data.error || 'Login failed');
+        }
+      } catch (error) {
+        alert('Login failed. Please try again.');
+      } finally {
+        loginBtn.textContent = 'Login';
+        loginBtn.disabled = false;
+      }
+    });
   }
-}
 
-function showAuthInterface() {
-  document.getElementById('authContainer').classList.add('active');
-  document.getElementById('mainContainer').style.display = 'none';
-}
+  if (signupBtn) {
+    signupBtn.addEventListener('click', async function() {
+      const email = document.getElementById('signupEmail').value;
+      const password = document.getElementById('signupPassword').value;
+      if (!email || !password) {
+        alert('Please fill in all fields');
+        return;
+      }
+      signupBtn.textContent = 'Signing up...';
+      signupBtn.disabled = true;
+      try {
+        const response = await fetch('https://qzrcbuzvgcyahevtsfms.supabase.co/functions/v1/auth-register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await response.json();
+        if (data.success) {
+          alert('Account created! Please login.');
+          document.querySelector('[data-tab="login"]').click();
+        } else {
+          alert(data.error || 'Signup failed');
+        }
+      } catch (error) {
+        alert('Signup failed. Please try again.');
+      } finally {
+        signupBtn.textContent = 'Sign Up';
+        signupBtn.disabled = false;
+      }
+    });
+  }
 
-async function showMainInterface(token) {
-  document.getElementById('authContainer').classList.remove('active');
-  document.getElementById('mainContainer').style.display = 'block';
-  
-  // Load user info
-  try {
-    const user = await supabase.getUser(token);
-    if (user.email) {
-      document.getElementById('userInfo').textContent = `Logged in as: ${user.email}`;
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async function() {
+      await chrome.storage.local.clear();
+      currentUser = null;
+      showAuthInterface();
+    });
+  }
+
+  if (scanBtn) {
+    scanBtn.addEventListener('click', async function() {
+      if (!currentUser) {
+        alert('Please login first');
+        return;
+      }
+      isScanning = true;
+      scanBtn.textContent = 'Scanning...';
+      scanBtn.disabled = true;
+      status.textContent = 'Scanning page...';
+      try {
+        chrome.runtime.sendMessage({ action: 'scanPageFromPopup' }, (response) => {
+          if (chrome.runtime.lastError) {
+            status.textContent = 'Error: ' + chrome.runtime.lastError.message;
+            alert('Error: ' + chrome.runtime.lastError.message);
+          } else if (response && response.error) {
+            status.textContent = 'Scan failed: ' + response.error;
+            alert('Scan failed: ' + response.error);
+          } else if (response && response.success) {
+            status.textContent = 'Scan completed successfully';
+            if (response.results) {
+              displayResults(response.results);
+            }
+          } else {
+            status.textContent = 'Scan completed';
+          }
+          scanBtn.textContent = 'Scan Page';
+          scanBtn.disabled = false;
+          isScanning = false;
+        });
+      } catch (error) {
+        status.textContent = 'Error: ' + error.message;
+        alert('Error: ' + error.message);
+        scanBtn.textContent = 'Scan Page';
+        scanBtn.disabled = false;
+        isScanning = false;
+      }
+    });
+  }
+
+  if (dashboardBtn) {
+    dashboardBtn.addEventListener('click', function() {
+      chrome.storage.local.get(['userId'], function(result) {
+        if (result.userId) {
+          chrome.tabs.create({ url: 'http://localhost:8080/?tab=dashboard' });
+        } else {
+          chrome.tabs.create({ url: 'http://localhost:8080/?tab=account' });
+        }
+      });
+    });
+  }
+
+  if (enableToggle) {
+    enableToggle.addEventListener('click', function() {
+      this.classList.toggle('active');
+      const isActive = this.classList.contains('active');
+      status.textContent = isActive ? 'Active' : 'Disabled';
+      chrome.storage.sync.set({ extensionEnabled: isActive });
+    });
+  }
+
+  function showAuthInterface() {
+    authContainer.style.display = 'block';
+    mainContainer.style.display = 'none';
+  }
+
+  function showMainInterface() {
+    authContainer.style.display = 'none';
+    mainContainer.style.display = 'block';
+    if (currentUser) {
+      userInfo.textContent = `Logged in as: ${currentUser.email}`;
     }
-  } catch (error) {
-    console.error('Error loading user info:', error);
+    chrome.storage.sync.get(['extensionEnabled'], function(result) {
+      if (result.extensionEnabled) {
+        enableToggle.classList.add('active');
+        status.textContent = 'Active';
+      }
+    });
   }
-}
-
-async function getStoredToken() {
-  const result = await chrome.storage.local.get(['userToken']);
-  return result.userToken;
-}
-
-async function storeToken(token, user) {
-  await chrome.storage.local.set({ 
-    userToken: token,
-    userInfo: user
-  });
-}
-
-async function loadStats() {
-  const result = await chrome.storage.local.get(['stats']);
-  const stats = result.stats || { scanned: 0, blocked: 0, blurred: 0 };
   
-  document.getElementById('scannedCount').textContent = stats.scanned;
-  document.getElementById('blockedCount').textContent = stats.blocked;
-  document.getElementById('blurredCount').textContent = stats.blurred;
-}
+  function displayResults(results) {
+    if (!results || !results.scores) return;
+    const categories = {
+      fake_info: 'Fake Info',
+      violence: 'Violence',
+      drugs: 'Drugs',
+      guns: 'Guns',
+      ai_generated: 'AI Generated',
+      nudity: 'Nudity'
+    };
+    let html = `<div style="margin-bottom: 10px; font-weight: bold;">Overall Score: ${results.overall_score || 0}/100</div>`;
+    for (const [key, value] of Object.entries(results.scores)) {
+      const categoryName = categories[key] || key;
+      const score = value || 0;
+      const level = score >= 70 ? 'high' : score >= 40 ? 'medium' : 'low';
+      html += `<div class="result-item">
+        <div class="category">${categoryName}</div>
+        <div class="score-bar">
+          <div class="score-fill ${level}" style="width: ${score}%"></div>
+        </div>
+        <div class="score">${score}</div>
+      </div>`;
+    }
+    scanResults.innerHTML = html;
+  }
+});
